@@ -1,4 +1,5 @@
 from keras.callbacks import *
+from keras import backend as K
 
 
 class CyclicLR(Callback):
