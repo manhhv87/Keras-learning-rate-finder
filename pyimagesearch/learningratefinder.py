@@ -39,7 +39,7 @@ class LearningRateFinder:
 	def is_data_iter(self, data):
 		# define the set of class types we will check for
 		iterClasses = ["NumpyArrayIterator", "DirectoryIterator",
-			 "Iterator", "Sequence"]
+			       "Iterator", "Sequence"]
 
 		# return whether our data is an iterator
 		return data.__class__.__name__ in iterClasses
@@ -78,8 +78,8 @@ class LearningRateFinder:
 		K.set_value(self.model.optimizer.lr, lr)
 
 	def find(self, trainData, startLR, endLR, epochs=None,
-		stepsPerEpoch=None, batchSize=32, sampleSize=2048,
-		verbose=1):
+		 stepsPerEpoch=None, batchSize=32, sampleSize=2048, 
+		 verbose=1):
 		# reset our class-specific variables
 		self.reset()
 
@@ -134,22 +134,20 @@ class LearningRateFinder:
 
 		# check to see if we are using a data iterator
 		if useGen:
-			self.model.fit_generator(
-				trainData,
-				steps_per_epoch=stepsPerEpoch,
-				epochs=epochs,
-				verbose=verbose,
-				callbacks=[callback])
+			self.model.fit(trainData,
+				       steps_per_epoch=stepsPerEpoch,
+				       epochs=epochs,
+				       verbose=verbose,
+				       callbacks=[callback])
 
 		# otherwise, our entire training data is already in memory
 		else:
 			# train our model using Keras' fit method
-			self.model.fit(
-				trainData[0], trainData[1],
-				batch_size=batchSize,
-				epochs=epochs,
-				callbacks=[callback],
-				verbose=verbose)
+			self.model.fit(trainData[0], trainData[1],
+				       batch_size=batchSize,
+				       epochs=epochs,
+				       callbacks=[callback],
+				       verbose=verbose)
 
 		# restore the original model weights and learning rate
 		self.model.load_weights(self.weightsFile)
