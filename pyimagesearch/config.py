@@ -3,7 +3,7 @@ import os
 
 # initialize the list of class label names
 CLASSES = ["top", "trouser", "pullover", "dress", "coat",
-	"sandal", "shirt", "sneaker", "bag", "ankle boot"]
+           "sandal", "shirt", "sneaker", "bag", "ankle boot"]
 
 # define the minimum learning rate, maximum learning rate, batch size,
 # step size, CLR method, and number of epochs

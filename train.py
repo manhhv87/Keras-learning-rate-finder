@@ -1,10 +1,3 @@
-# USAGE
-# python train.py
-
-# set the matplotlib backend so figures can be saved in the background
-import matplotlib
-matplotlib.use("Agg")
-
 # import the necessary packages
 from pyimagesearch.learningratefinder import LearningRateFinder
 from pyimagesearch.minigooglenet import MiniGoogLeNet
@@ -21,10 +14,15 @@ import argparse
 import cv2
 import sys
 
+# set the matplotlib backend so figures can be saved in the background
+import matplotlib
+
+matplotlib.use("Agg")
+
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-f", "--lr-find", type=int, default=0,
-	help="whether or not to find optimal learning rate")
+                help="whether or not to find optimal learning rate")
 args = vars(ap.parse_args())
 
 # load the training and testing data
@@ -52,64 +50,64 @@ testY = lb.transform(testY)
 
 # construct the image generator for data augmentation
 aug = ImageDataGenerator(width_shift_range=0.1,
-			 height_shift_range=0.1, horizontal_flip=True,
-			 fill_mode="nearest")
+                         height_shift_range=0.1, horizontal_flip=True,
+                         fill_mode="nearest")
 
 # initialize the optimizer and model
 print("[INFO] compiling model...")
 opt = SGD(learning_rate=config.MIN_LR, momentum=0.9)
 model = MiniGoogLeNet.build(width=32, height=32, depth=1, classes=10)
-model.compile(loss="categorical_crossentropy", 
-	      optimizer=opt,
-	      metrics=["accuracy"])
+model.compile(loss="categorical_crossentropy",
+              optimizer=opt,
+              metrics=["accuracy"])
 
 # check to see if we are attempting to find an optimal learning rate
 # before training for the full number of epochs
 if args["lr_find"] > 0:
-	# initialize the learning rate finder and then train with learning
-	# rates ranging from 1e-10 to 1e+1
-	print("[INFO] finding learning rate...")
-	lrf = LearningRateFinder(model)
-	lrf.find(aug.flow(trainX, trainY, batch_size=config.BATCH_SIZE),
-		 1e-10, 1e+1,
-		 stepsPerEpoch=np.ceil((len(trainX) / float(config.BATCH_SIZE))),
-		 batchSize=config.BATCH_SIZE)
+    # initialize the learning rate finder and then train with learning
+    # rates ranging from 1e-10 to 1e+1
+    print("[INFO] finding learning rate...")
+    lrf = LearningRateFinder(model)
+    lrf.find(aug.flow(trainX, trainY, batch_size=config.BATCH_SIZE),
+             1e-10, 1e+1,
+             stepsPerEpoch=np.ceil((len(trainX) / float(config.BATCH_SIZE))),
+             batchSize=config.BATCH_SIZE)
 
-	# plot the loss for the various learning rates and save the
-	# resulting plot to disk
-	lrf.plot_loss()
-	plt.savefig(config.LRFIND_PLOT_PATH)
+    # plot the loss for the various learning rates and save the
+    # resulting plot to disk
+    lrf.plot_loss()
+    plt.savefig(config.LRFIND_PLOT_PATH)
 
-	# gracefully exit the script so we can adjust our learning rates
-	# in the config and then train the network for our full set of
-	# epochs
-	print("[INFO] learning rate finder complete")
-	print("[INFO] examine plot and adjust learning rates before training")
-	sys.exit(0)
+    # gracefully exit the script so we can adjust our learning rates
+    # in the config and then train the network for our full set of
+    # epochs
+    print("[INFO] learning rate finder complete")
+    print("[INFO] examine plot and adjust learning rates before training")
+    sys.exit(0)
 
 # otherwise, we have already defined a learning rate space to train
 # over, so compute the step size and initialize the cyclic learning
 # rate method
 stepSize = config.STEP_SIZE * (trainX.shape[0] // config.BATCH_SIZE)
 clr = CyclicLR(mode=config.CLR_METHOD,
-	       base_lr=config.MIN_LR,
-	       max_lr=config.MAX_LR,
-	       step_size=stepSize)
+               base_lr=config.MIN_LR,
+               max_lr=config.MAX_LR,
+               step_size=stepSize)
 
 # train the network
 print("[INFO] training network...")
 H = model.fit(aug.flow(trainX, trainY, batch_size=config.BATCH_SIZE),
-	      validation_data=(testX, testY),
-	      steps_per_epoch=trainX.shape[0] // config.BATCH_SIZE,
-	      epochs=config.NUM_EPOCHS,
-	      callbacks=[clr],
-	      verbose=1)
+              validation_data=(testX, testY),
+              steps_per_epoch=trainX.shape[0] // config.BATCH_SIZE,
+              epochs=config.NUM_EPOCHS,
+              callbacks=[clr],
+              verbose=1)
 
 # evaluate the network and show a classification report
 print("[INFO] evaluating network...")
 predictions = model.predict(testX, batch_size=config.BATCH_SIZE)
 print(classification_report(testY.argmax(axis=1),
-			    predictions.argmax(axis=1), target_names=config.CLASSES))
+                            predictions.argmax(axis=1), target_names=config.CLASSES))
 
 # construct a plot that plots and saves the training history
 N = np.arange(0, config.NUM_EPOCHS)
